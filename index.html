@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0057)file:///C:/Users/haoha/Downloads/classifier_computer.html -->
+<html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>분류 지표 시뮬레이터 v2.0</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link href="./분류 지표 시뮬레이터 v2.0_files/css2" rel="stylesheet">
+<script src="./분류 지표 시뮬레이터 v2.0_files/chart.umd.js.다운로드"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -231,10 +231,10 @@ footer{border-top:1.5px solid var(--border);padding:16px 40px;font-family:var(--
   </div>
   <div style="display:flex;align-items:center;gap:6px">
     <div class="nav-tabs">
-      <button class="nav-tab active" onclick="switchPage('simulator')">📊 정밀도·재현율 시뮬레이터</button>
-      <button class="nav-tab" onclick="switchPage('cases')">📖 활용 사례</button>
+      <button class="nav-tab active" onclick="switchPage(&#39;simulator&#39;)">📊 정밀도·재현율 시뮬레이터</button>
+      <button class="nav-tab" onclick="switchPage(&#39;cases&#39;)">📖 활용 사례</button>
     </div>
-    <span class="live-badge" id="live-badge-sim"><span class="live-dot"></span>실시간</span>
+    <span class="live-badge" id="live-badge-sim" style="display: flex;"><span class="live-dot"></span>실시간</span>
   </div>
 </nav>
 
@@ -247,11 +247,11 @@ footer{border-top:1.5px solid var(--border);padding:16px 40px;font-family:var(--
       <h1>정밀도 · 재현율<br><em>시뮬레이터</em></h1>
       <p class="hero-desc">TP · FP · FN · TN 값을 입력하거나 슬라이더로 조절하고, <strong style="color:var(--text);font-weight:500;">임계값에 따라 Fβ-Score가 어떻게 변하는지</strong> 실시간으로 확인하세요.</p>
       <div class="hero-stats">
-        <div class="hero-stat"><span class="hero-stat-val" id="hs-precision">—</span><span class="hero-stat-label">Precision</span></div>
-        <div class="hero-stat"><span class="hero-stat-val" id="hs-recall">—</span><span class="hero-stat-label">Recall</span></div>
-        <div class="hero-stat"><span class="hero-stat-val" id="hs-f1">—</span><span class="hero-stat-label">F1 Score</span></div>
-        <div class="hero-stat"><span class="hero-stat-val" id="hs-fbeta">—</span><span class="hero-stat-label" id="hs-fbeta-label">Fβ (β=?)</span></div>
-        <div class="hero-stat"><span class="hero-stat-val" id="hs-total">—</span><span class="hero-stat-label">총 샘플</span></div>
+        <div class="hero-stat"><span class="hero-stat-val" id="hs-precision">0.800</span><span class="hero-stat-label">Precision</span></div>
+        <div class="hero-stat"><span class="hero-stat-val" id="hs-recall">0.727</span><span class="hero-stat-label">Recall</span></div>
+        <div class="hero-stat"><span class="hero-stat-val" id="hs-f1">0.762</span><span class="hero-stat-label">F1 Score</span></div>
+        <div class="hero-stat"><span class="hero-stat-val" id="hs-fbeta">0.784</span><span class="hero-stat-label" id="hs-fbeta-label">Fβ (β=?)</span></div>
+        <div class="hero-stat"><span class="hero-stat-val" id="hs-total">200</span><span class="hero-stat-label">총 샘플</span></div>
       </div>
     </div>
   </header>
@@ -261,8 +261,8 @@ footer{border-top:1.5px solid var(--border);padding:16px 40px;font-family:var(--
       <div class="sidebar-section">
         <div class="section-label">입력 모드</div>
         <div class="mode-tabs">
-          <button class="mode-tab active" id="tab-manual" onclick="setMode('manual')">직접 입력</button>
-          <button class="mode-tab" id="tab-slider" onclick="setMode('slider')">슬라이더</button>
+          <button class="mode-tab active" id="tab-manual" onclick="setMode(&#39;manual&#39;)">직접 입력</button>
+          <button class="mode-tab" id="tab-slider" onclick="setMode(&#39;slider&#39;)">슬라이더</button>
         </div>
         <div id="panel-manual">
           <div class="num-input-row">
@@ -290,11 +290,11 @@ footer{border-top:1.5px solid var(--border);padding:16px 40px;font-family:var(--
       <div class="sidebar-section">
         <div class="section-label">그래프 표시</div>
         <div class="toggle-list">
-          <div class="toggle-row"><span class="toggle-label"><span class="color-swatch" style="background:var(--teal)"></span>정밀도</span><label class="toggle"><input type="checkbox" id="tog-p" checked><span class="toggle-track"></span></label></div>
-          <div class="toggle-row"><span class="toggle-label"><span class="color-swatch" style="background:var(--red)"></span>재현율</span><label class="toggle"><input type="checkbox" id="tog-r" checked><span class="toggle-track"></span></label></div>
-          <div class="toggle-row"><span class="toggle-label"><span class="color-swatch" style="background:var(--blue)"></span>F-β 곡선</span><label class="toggle"><input type="checkbox" id="tog-f1" checked><span class="toggle-track"></span></label></div>
-          <div class="toggle-row"><span class="toggle-label"><span class="color-swatch" style="background:var(--amber)"></span>F0.5</span><label class="toggle"><input type="checkbox" id="tog-f05" checked><span class="toggle-track"></span></label></div>
-          <div class="toggle-row"><span class="toggle-label"><span class="color-swatch" style="background:var(--purple)"></span>F2</span><label class="toggle"><input type="checkbox" id="tog-f2" checked><span class="toggle-track"></span></label></div>
+          <div class="toggle-row"><span class="toggle-label"><span class="color-swatch" style="background:var(--teal)"></span>정밀도</span><label class="toggle"><input type="checkbox" id="tog-p" checked=""><span class="toggle-track"></span></label></div>
+          <div class="toggle-row"><span class="toggle-label"><span class="color-swatch" style="background:var(--red)"></span>재현율</span><label class="toggle"><input type="checkbox" id="tog-r" checked=""><span class="toggle-track"></span></label></div>
+          <div class="toggle-row"><span class="toggle-label"><span class="color-swatch" style="background:var(--blue)"></span>F-β 곡선</span><label class="toggle"><input type="checkbox" id="tog-f1" checked=""><span class="toggle-track"></span></label></div>
+          <div class="toggle-row"><span class="toggle-label"><span class="color-swatch" style="background:var(--amber)"></span>F0.5</span><label class="toggle"><input type="checkbox" id="tog-f05" checked=""><span class="toggle-track"></span></label></div>
+          <div class="toggle-row"><span class="toggle-label"><span class="color-swatch" style="background:var(--purple)"></span>F2</span><label class="toggle"><input type="checkbox" id="tog-f2" checked=""><span class="toggle-track"></span></label></div>
         </div>
       </div>
 
@@ -311,11 +311,11 @@ footer{border-top:1.5px solid var(--border);padding:16px 40px;font-family:var(--
     <main class="main">
       <!-- Metric cards -->
       <div class="metric-grid">
-        <div class="metric-card" style="--card-bar:var(--teal);--card-color:var(--teal)"><div class="metric-label">정밀도</div><div class="metric-val" id="mc-precision">—</div><div class="metric-sub">Precision</div></div>
-        <div class="metric-card" style="--card-bar:var(--red);--card-color:var(--red)"><div class="metric-label">재현율</div><div class="metric-val" id="mc-recall">—</div><div class="metric-sub">Recall</div></div>
-        <div class="metric-card" style="--card-bar:var(--blue);--card-color:var(--blue)"><div class="metric-label">F1 Score</div><div class="metric-val" id="mc-f1">—</div><div class="metric-sub">균형 점수</div></div>
-        <div class="metric-card" style="--card-bar:var(--amber);--card-color:var(--amber)"><div class="metric-label">F0.5</div><div class="metric-val" id="mc-f05">—</div><div class="metric-sub">정밀도 중시</div></div>
-        <div class="metric-card" style="--card-bar:var(--purple);--card-color:var(--purple)"><div class="metric-label">F2</div><div class="metric-val" id="mc-f2">—</div><div class="metric-sub">재현율 중시</div></div>
+        <div class="metric-card" style="--card-bar:var(--teal);--card-color:var(--teal)"><div class="metric-label">정밀도</div><div class="metric-val" id="mc-precision">0.800</div><div class="metric-sub">Precision</div></div>
+        <div class="metric-card" style="--card-bar:var(--red);--card-color:var(--red)"><div class="metric-label">재현율</div><div class="metric-val" id="mc-recall">0.727</div><div class="metric-sub">Recall</div></div>
+        <div class="metric-card" style="--card-bar:var(--blue);--card-color:var(--blue)"><div class="metric-label">F1 Score</div><div class="metric-val" id="mc-f1">0.762</div><div class="metric-sub">균형 점수</div></div>
+        <div class="metric-card" style="--card-bar:var(--amber);--card-color:var(--amber)"><div class="metric-label">F0.5</div><div class="metric-val" id="mc-f05">0.784</div><div class="metric-sub">정밀도 중시</div></div>
+        <div class="metric-card" style="--card-bar:var(--purple);--card-color:var(--purple)"><div class="metric-label">F2</div><div class="metric-val" id="mc-f2">0.741</div><div class="metric-sub">재현율 중시</div></div>
       </div>
 
       <!-- Confusion Matrix + β chart -->
@@ -331,29 +331,29 @@ footer{border-top:1.5px solid var(--border);padding:16px 40px;font-family:var(--
           <div style="margin-top:12px">
             <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.08em">비율</div>
             <div style="height:7px;border-radius:4px;overflow:hidden;display:flex">
-              <div id="bar-tp" style="background:rgba(14,165,122,.7);height:100%;transition:width .3s"></div>
-              <div id="bar-fp" style="background:rgba(245,158,11,.7);height:100%;transition:width .3s"></div>
-              <div id="bar-fn" style="background:rgba(230,57,80,.7);height:100%;transition:width .3s"></div>
-              <div id="bar-tn" style="background:var(--border2);height:100%;transition:width .3s"></div>
+              <div id="bar-tp" style="background: rgba(14, 165, 122, 0.7); height: 100%; transition: width 0.3s; width: 20%;"></div>
+              <div id="bar-fp" style="background: rgba(245, 158, 11, 0.7); height: 100%; transition: width 0.3s; width: 5%;"></div>
+              <div id="bar-fn" style="background: rgba(230, 57, 80, 0.7); height: 100%; transition: width 0.3s; width: 7.5%;"></div>
+              <div id="bar-tn" style="background: var(--border2); height: 100%; transition: width 0.3s; width: 67.5%;"></div>
             </div>
             <div style="display:flex;gap:10px;margin-top:5px;flex-wrap:wrap">
-              <span style="font-family:var(--mono);font-size:10px;color:var(--teal)">TP <span id="pct-tp">—</span></span>
-              <span style="font-family:var(--mono);font-size:10px;color:var(--amber)">FP <span id="pct-fp">—</span></span>
-              <span style="font-family:var(--mono);font-size:10px;color:var(--red)">FN <span id="pct-fn">—</span></span>
-              <span style="font-family:var(--mono);font-size:10px;color:var(--text3)">TN <span id="pct-tn">—</span></span>
+              <span style="font-family:var(--mono);font-size:10px;color:var(--teal)">TP <span id="pct-tp">20.0%</span></span>
+              <span style="font-family:var(--mono);font-size:10px;color:var(--amber)">FP <span id="pct-fp">5.0%</span></span>
+              <span style="font-family:var(--mono);font-size:10px;color:var(--red)">FN <span id="pct-fn">7.5%</span></span>
+              <span style="font-family:var(--mono);font-size:10px;color:var(--text3)">TN <span id="pct-tn">67.5%</span></span>
             </div>
           </div>
         </div>
         <div class="panel">
           <div class="panel-header"><span class="panel-title">β에 따른 F-Score 변화</span><span class="panel-sub">β: 0 → 3</span></div>
-          <div class="chart-wrap"><canvas id="beta-chart"></canvas></div>
+          <div class="chart-wrap"><canvas id="beta-chart" width="1261" height="220" style="display: block; box-sizing: border-box; height: 220px; width: 1261px;"></canvas></div>
         </div>
       </div>
 
       <!-- Bottom: field (full width) + table -->
       <div class="panel">
         <div class="panel-header"><span class="panel-title">샘플 시각화</span><span class="panel-sub" id="field-total-label">200개 샘플</span></div>
-        <div class="field-outer"><div class="field-grid" id="field-grid"></div></div>
+        <div class="field-outer"><div class="field-grid" id="field-grid" style="grid-template-columns: repeat(29, 28px); gap: 4px;"><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fp" title="FP: 위양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fp" title="FP: 위양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fp" title="FP: 위양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fp" title="FP: 위양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fp" title="FP: 위양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fn" title="FN: 위음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fn" title="FN: 위음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fn" title="FN: 위음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fp" title="FP: 위양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fn" title="FN: 위음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fn" title="FN: 위음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fn" title="FN: 위음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fp" title="FP: 위양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fn" title="FN: 위음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fp" title="FP: 위양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fp" title="FP: 위양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fn" title="FN: 위음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fn" title="FN: 위음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fn" title="FN: 위음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fn" title="FN: 위음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fn" title="FN: 위음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fn" title="FN: 위음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fn" title="FN: 위음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fp" title="FP: 위양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-fn" title="FN: 위음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tp" title="TP: 진양성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div><div class="field-cell cell-tn" title="TN: 진음성" style="height: 28px; width: 28px;"></div></div></div>
         <div class="legend">
           <span class="legend-item"><span class="legend-swatch" style="background:rgba(14,165,122,.82)"></span>TP 진양성</span>
           <span class="legend-item"><span class="legend-swatch" style="background:rgba(245,158,11,.82)"></span>FP 위양성</span>
@@ -366,7 +366,43 @@ footer{border-top:1.5px solid var(--border);padding:16px 40px;font-family:var(--
         <div class="table-scroll">
           <table class="data-table">
             <thead><tr><th>β</th><th>정밀도</th><th>재현율</th><th>F-β</th><th>해석</th></tr></thead>
-            <tbody id="table-body"></tbody>
+            <tbody id="table-body"><tr>
+      <td>0.10</td>
+      <td style="color:var(--teal)">0.800</td>
+      <td style="color:var(--red)">0.727</td>
+      <td style="color:var(--blue);font-weight:400">0.799</td>
+      <td style="color:var(--text3);font-size:11px">FP 최소화</td>
+    </tr><tr>
+      <td>0.25</td>
+      <td style="color:var(--teal)">0.800</td>
+      <td style="color:var(--red)">0.727</td>
+      <td style="color:var(--blue);font-weight:400">0.795</td>
+      <td style="color:var(--text3);font-size:11px">FP 억제</td>
+    </tr><tr class="active">
+      <td>0.50</td>
+      <td style="color:var(--teal)">0.800</td>
+      <td style="color:var(--red)">0.727</td>
+      <td style="color:var(--blue);font-weight:600">0.784</td>
+      <td style="color:var(--text3);font-size:11px">F0.5 정밀도↑</td>
+    </tr><tr>
+      <td>1.00</td>
+      <td style="color:var(--teal)">0.800</td>
+      <td style="color:var(--red)">0.727</td>
+      <td style="color:var(--blue);font-weight:400">0.762</td>
+      <td style="color:var(--text3);font-size:11px">F1 균형</td>
+    </tr><tr>
+      <td>2.00</td>
+      <td style="color:var(--teal)">0.800</td>
+      <td style="color:var(--red)">0.727</td>
+      <td style="color:var(--blue);font-weight:400">0.741</td>
+      <td style="color:var(--text3);font-size:11px">F2 재현율↑</td>
+    </tr><tr>
+      <td>3.00</td>
+      <td style="color:var(--teal)">0.800</td>
+      <td style="color:var(--red)">0.727</td>
+      <td style="color:var(--blue);font-weight:400">0.734</td>
+      <td style="color:var(--text3);font-size:11px">재현율 최대화</td>
+    </tr></tbody>
           </table>
         </div>
       </div>
@@ -395,27 +431,27 @@ footer{border-top:1.5px solid var(--border);padding:16px 40px;font-family:var(--
         <!-- Live readout at current threshold -->
         <div class="thresh-readout">
           <div class="readout-cell">
-            <div class="readout-val" style="color:var(--blue)" id="ro-threshold">0.50</div>
+            <div class="readout-val" style="color:var(--blue)" id="ro-threshold">0.55</div>
             <div class="readout-lbl">임계값 t</div>
           </div>
           <div class="readout-cell">
-            <div class="readout-val" style="color:var(--teal)" id="ro-precision">—</div>
+            <div class="readout-val" style="color:var(--teal)" id="ro-precision">0.859</div>
             <div class="readout-lbl">정밀도</div>
           </div>
           <div class="readout-cell">
-            <div class="readout-val" style="color:var(--red)" id="ro-recall">—</div>
+            <div class="readout-val" style="color:var(--red)" id="ro-recall">0.628</div>
             <div class="readout-lbl">재현율</div>
           </div>
           <div class="readout-cell">
-            <div class="readout-val" style="color:var(--blue)" id="ro-fbeta">—</div>
+            <div class="readout-val" style="color:var(--blue)" id="ro-fbeta">0.800</div>
             <div class="readout-lbl" id="ro-fbeta-lbl">Fβ (β=0.5)</div>
           </div>
           <div class="readout-cell">
-            <div class="readout-val" style="color:var(--amber)" id="ro-f1">—</div>
+            <div class="readout-val" style="color:var(--amber)" id="ro-f1">0.726</div>
             <div class="readout-lbl">F1</div>
           </div>
           <div class="readout-cell">
-            <div class="readout-val" style="color:var(--purple)" id="ro-optimal">—</div>
+            <div class="readout-val" style="color:var(--purple)" id="ro-optimal">0.55</div>
             <div class="readout-lbl">최적 t (Fβ↑)</div>
           </div>
         </div>
@@ -430,7 +466,7 @@ footer{border-top:1.5px solid var(--border);padding:16px 40px;font-family:var(--
             <div style="display:flex;align-items:center;gap:5px"><span style="width:18px;height:18px;background:var(--blue-soft);border:2px solid var(--blue);border-radius:50%;display:inline-block"></span><span style="font-family:var(--mono);font-size:11px;color:var(--text2)">현재 임계값</span></div>
           </div>
           <div class="thresh-chart-wrap">
-            <canvas id="thresh-chart"></canvas>
+            <canvas id="thresh-chart" width="1521" height="260" style="display: block; box-sizing: border-box; height: 260px; width: 1521px;"></canvas>
           </div>
         </div>
 
@@ -439,7 +475,7 @@ footer{border-top:1.5px solid var(--border);padding:16px 40px;font-family:var(--
           <div class="thresh-big-row">
             <span class="thresh-big-label">임계값 (t)</span>
             <input type="range" min="1" max="99" value="50" step="1" id="sl-threshold" style="flex:1">
-            <span class="thresh-big-val" id="val-threshold">0.50</span>
+            <span class="thresh-big-val" id="val-threshold">0.55</span>
           </div>
         </div>
       </div>
@@ -552,7 +588,7 @@ footer{border-top:1.5px solid var(--border);padding:16px 40px;font-family:var(--
   </div>
 </div>
 
-<div class="tooltip" id="tooltip"></div>
+<div class="tooltip" id="tooltip" style="opacity: 0; left: 934px; top: 999px;">TP: 진양성</div>
 
 <footer>
   <span>분류 지표 시뮬레이터 v2.0 — Precision · Recall · Fβ-Score</span>
@@ -1014,5 +1050,6 @@ document.getElementById('field-grid').addEventListener('mouseleave', () => toolt
 
 update();
 </script>
-</body>
-</html>
+
+
+</body></html>
