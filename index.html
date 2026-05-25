@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>분류 지표 시뮬레이터 v2.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#f7f8fc; --bg2:#ffffff; --bg3:#eef1f8;
+  --border:#e2e6f0; --border2:#cdd3e3;
+  --text:#0d1120; --text2:#4a5270; --text3:#9aa0b8;
+  --blue:#1a56ff; --blue2:#0038d6; --blue-soft:#e8eeff; --blue-mid:#c0caff;
+  --red:#e63950; --teal:#0ea57a; --amber:#f59e0b; --purple:#7c3aed;
+  --mono:'DM Mono',monospace; --display:'Syne',sans-serif; --body:'Noto Sans KR',sans-serif;
+  --radius:8px; --shadow:0 1px 4px rgba(20,30,80,0.07),0 4px 16px rgba(20,30,80,0.05);
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--body);background:var(--bg);color:var(--text);min-height:100vh}
+
+/* TOPBAR */
+.topbar{background:var(--bg2);border-bottom:1.5px solid var(--border);padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-logo{font-family:var(--display);font-size:17px;font-weight:800;letter-spacing:-.02em;color:var(--text);display:flex;align-items:center;gap:10px}
+.topbar-logo-badge{background:var(--blue);color:#fff;font-size:9px;font-family:var(--mono);padding:2px 7px;border-radius:3px;letter-spacing:.1em}
+.nav-tabs{display:flex;align-items:center;gap:4px}
+.nav-tab{padding:8px 18px;font-family:var(--mono);font-size:12px;color:var(--text2);background:transparent;border:1.5px solid transparent;border-radius:6px;cursor:pointer;transition:all .18s;letter-spacing:.04em;font-weight:500}
+.nav-tab:hover{background:var(--bg3);color:var(--text)}
+.nav-tab.active{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 2px 8px rgba(26,86,255,.25)}
+.live-badge{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;color:var(--teal);margin-left:8px}
+.live-dot{width:6px;height:6px;background:var(--teal);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.page{display:none}
+.page.active{display:block}
+
+/* HERO */
+.hero{background:var(--bg2);border-bottom:1.5px solid var(--border);padding:44px 40px 36px;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;top:0;right:0;bottom:0;width:42%;background:linear-gradient(135deg,var(--blue-soft) 0%,rgba(200,210,255,.2) 100%);clip-path:polygon(10% 0,100% 0,100% 100%,0 100%);pointer-events:none}
+.hero-inner{position:relative;z-index:1}
+.hero-chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--blue);border:1px solid var(--blue-mid);background:var(--blue-soft);padding:4px 12px;border-radius:20px;margin-bottom:16px;letter-spacing:.06em;text-transform:uppercase;animation:fadeUp .4s ease both}
+.hero h1{font-family:var(--display);font-size:clamp(32px,5vw,54px);font-weight:800;line-height:1.05;letter-spacing:-.03em;color:var(--text);margin-bottom:10px;animation:fadeUp .4s .08s ease both}
+.hero h1 em{color:var(--blue);font-style:normal}
+.hero-desc{font-size:14px;color:var(--text2);max-width:500px;line-height:1.75;font-weight:300;animation:fadeUp .4s .16s ease both}
+.hero-stats{display:flex;gap:0;margin-top:28px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--bg2);overflow:hidden;width:fit-content;animation:fadeUp .4s .24s ease both}
+.hero-stat{padding:11px 22px;display:flex;flex-direction:column;gap:3px;border-right:1.5px solid var(--border)}
+.hero-stat:last-child{border-right:none}
+.hero-stat-val{font-family:var(--mono);font-size:20px;font-weight:500;color:var(--blue);line-height:1}
+.hero-stat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* LAYOUT */
+.app{display:grid;grid-template-columns:300px 1fr}
+@media(max-width:900px){.app{grid-template-columns:1fr}}
+
+/* SIDEBAR */
+.sidebar{background:var(--bg2);border-right:1.5px solid var(--border);padding:22px 18px;min-height:calc(100vh - 60px - 200px)}
+.sidebar-section{margin-bottom:26px}
+.section-label{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.14em;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.mode-tabs{display:grid;grid-template-columns:1fr 1fr;border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px}
+.mode-tab{padding:9px 10px;font-size:12px;font-family:var(--mono);color:var(--text2);background:transparent;border:none;cursor:pointer;transition:all .15s;text-align:center;letter-spacing:.03em}
+.mode-tab.active{background:var(--blue);color:#fff}
+.num-input-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.num-group{display:flex;flex-direction:column;gap:4px}
+.num-label{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em}
+.num-input{width:100%;padding:8px 6px;font-family:var(--mono);font-size:15px;font-weight:500;background:var(--bg);border:1.5px solid var(--border);border-radius:6px;outline:none;transition:border-color .15s;-moz-appearance:textfield;text-align:center;color:var(--text)}
+.num-input::-webkit-inner-spin-button{-webkit-appearance:none}
+.num-input:focus{border-color:var(--blue);background:#fff}
+.num-input.tp{color:var(--teal)}.num-input.fp{color:var(--amber)}.num-input.fn{color:var(--red)}.num-input.tn{color:var(--text2)}
+.ctrl-row{margin-bottom:14px}
+.ctrl-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.ctrl-name{font-size:13px;color:var(--text2)}
+.ctrl-val{font-family:var(--mono);font-size:12px;color:var(--blue);background:var(--blue-soft);padding:2px 7px;border-radius:4px;border:1px solid var(--blue-mid);min-width:46px;text-align:center}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;background:var(--border);border-radius:2px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--blue);cursor:pointer;border:3px solid #fff;box-shadow:0 0 0 1.5px var(--blue-mid),0 2px 6px rgba(26,86,255,.25);transition:transform .1s}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15)}
+.toggle-list{display:flex;flex-direction:column}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-label{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--text2)}
+.color-swatch{width:9px;height:9px;border-radius:3px;flex-shrink:0}
+.toggle{position:relative;width:33px;height:19px}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-track{position:absolute;inset:0;background:var(--border2);border-radius:12px;cursor:pointer;transition:background .2s}
+.toggle-track::after{content:'';position:absolute;width:13px;height:13px;background:#fff;border-radius:50%;top:3px;left:3px;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.toggle input:checked+.toggle-track{background:var(--blue)}
+.toggle input:checked+.toggle-track::after{left:17px}
+.formula-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.formula-card{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:11px}
+.formula-card.wide{grid-column:1/-1}
+.formula-name{font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:5px;text-transform:uppercase}
+.formula-eq{font-family:var(--mono);font-size:11px;color:var(--text2);line-height:1.6}
+.formula-eq em{color:var(--blue);font-style:normal;font-weight:500}
+.derived-box{margin-top:10px;padding:10px 12px;background:var(--blue-soft);border:1px solid var(--blue-mid);border-radius:6px}
+
+/* MAIN */
+.main{padding:22px 26px;background:var(--bg)}
+.metric-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:18px}
+.metric-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 12px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .15s}
+.metric-card:hover{transform:translateY(-1px)}
+.metric-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--card-bar,var(--border))}
+.metric-label{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.metric-val{font-family:var(--mono);font-size:22px;font-weight:500;line-height:1;color:var(--card-color,var(--text))}
+.metric-sub{font-size:11px;color:var(--text3);margin-top:4px}
+
+.panel{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:16px;box-shadow:var(--shadow)}
+.panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.panel-title{font-family:var(--display);font-size:13px;font-weight:700;letter-spacing:-.01em;color:var(--text)}
+.panel-sub{font-family:var(--mono);font-size:11px;color:var(--text3)}
+.chart-wrap{position:relative;height:220px}
+
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.bottom-grid{grid-template-columns:1fr}}
+
+/* FIELD */
+.field-outer{overflow:auto}
+.field-grid{display:grid;gap:4px}
+.field-cell{border-radius:4px;transition:transform .1s;cursor:default}
+.field-cell:hover{transform:scale(1.2);z-index:2;position:relative}
+.cell-tp{background:rgba(14,165,122,.82)}.cell-fp{background:rgba(245,158,11,.82)}.cell-fn{background:rgba(230,57,80,.82)}.cell-tn{background:var(--bg3);border:1px solid var(--border)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)}
+.legend-swatch{width:10px;height:10px;border-radius:3px}
+
+/* TABLE */
+.data-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+.data-table th{text-align:right;padding:7px 8px;color:var(--text3);font-weight:400;border-bottom:1.5px solid var(--border);text-transform:uppercase;letter-spacing:.07em;font-size:10px}
+.data-table th:first-child{text-align:left}
+.data-table td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--border);color:var(--text2)}
+.data-table td:first-child{text-align:left;color:var(--text)}
+.data-table tr.active td{background:var(--blue-soft)}
+.data-table tr.active td:first-child{color:var(--blue);font-weight:600}
+.table-scroll{overflow-x:auto}
+
+/* ═══════════════════════════════════════
+   THRESHOLD PANEL — NEW
+═══════════════════════════════════════ */
+.thresh-panel{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);margin-bottom:16px;box-shadow:var(--shadow);overflow:hidden}
+.thresh-header{padding:18px 20px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.thresh-title-block{}
+.thresh-title{font-family:var(--display);font-size:14px;font-weight:700;letter-spacing:-.01em;color:var(--text);margin-bottom:3px}
+.thresh-desc{font-size:12px;color:var(--text3)}
+.thresh-controls{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+
+/* Big threshold slider */
+.thresh-slider-wrap{padding:18px 20px 14px}
+.thresh-big-row{display:flex;align-items:center;gap:14px}
+.thresh-big-label{font-family:var(--mono);font-size:11px;color:var(--text3);white-space:nowrap}
+.thresh-big-val{font-family:var(--mono);font-size:20px;font-weight:500;color:var(--blue);background:var(--blue-soft);border:1px solid var(--blue-mid);border-radius:6px;padding:4px 14px;min-width:70px;text-align:center}
+#sl-threshold{flex:1;height:6px;border-radius:3px}
+#sl-threshold::-webkit-slider-thumb{width:22px;height:22px;border-width:4px}
+
+/* Beta selector pills */
+.beta-pills{display:flex;gap:6px;flex-wrap:wrap;padding:0 20px 14px}
+.beta-pill{font-family:var(--mono);font-size:11px;padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all .15s;letter-spacing:.04em}
+.beta-pill:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-soft)}
+.beta-pill.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* Live readout strip */
+.thresh-readout{display:grid;grid-template-columns:repeat(6,1fr);border-top:1.5px solid var(--border);border-bottom:1.5px solid var(--border)}
+.readout-cell{padding:12px 10px;text-align:center;border-right:1px solid var(--border)}
+.readout-cell:last-child{border-right:none}
+.readout-val{font-family:var(--mono);font-size:16px;font-weight:500;line-height:1;margin-bottom:3px}
+.readout-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em}
+
+/* Threshold chart */
+.thresh-chart-area{padding:18px 20px}
+.thresh-chart-wrap{position:relative;height:260px}
+
+/* Threshold Annotation indicator */
+.thresh-line-indicator{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.thresh-line-dot{width:3px;height:20px;background:var(--blue);border-radius:2px;opacity:.7}
+.thresh-line-text{font-family:var(--mono);font-size:11px;color:var(--text3)}
+
+/* CASES PAGE */
+.cases-page{max-width:1060px;margin:0 auto;padding:44px 36px}
+.cases-hero{text-align:center;margin-bottom:52px}
+.cases-hero-chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--blue);border:1px solid var(--blue-mid);background:var(--blue-soft);padding:4px 14px;border-radius:20px;margin-bottom:18px;letter-spacing:.06em;text-transform:uppercase}
+.cases-hero h2{font-family:var(--display);font-size:clamp(30px,4vw,50px);font-weight:800;letter-spacing:-.03em;margin-bottom:12px;color:var(--text)}
+.cases-hero h2 em{color:var(--blue);font-style:normal}
+.cases-hero p{font-size:15px;color:var(--text2);max-width:520px;margin:0 auto;line-height:1.75;font-weight:300}
+.case-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:12px;margin-bottom:26px;overflow:hidden;box-shadow:var(--shadow);transition:box-shadow .2s}
+.case-card:hover{box-shadow:0 4px 24px rgba(20,30,80,.1)}
+.case-card-header{padding:26px 30px 22px;border-bottom:1.5px solid var(--border);display:flex;align-items:flex-start;gap:18px}
+.case-icon{width:50px;height:50px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.case-icon.spam{background:rgba(26,86,255,.1)}.case-icon.drought{background:rgba(14,165,122,.1)}
+.case-title-area{flex:1}
+.case-category{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:5px}
+.case-title{font-family:var(--display);font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--text);margin-bottom:5px}
+.case-subtitle{font-size:13px;color:var(--text2);font-weight:300}
+.case-beta-badge{font-family:var(--mono);font-size:12px;font-weight:500;padding:6px 14px;border-radius:20px;white-space:nowrap;align-self:flex-start}
+.badge-blue{background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue-mid)}
+.badge-teal{background:rgba(14,165,122,.1);color:var(--teal);border:1px solid rgba(14,165,122,.3)}
+.case-body{padding:26px 30px}
+.case-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:700px){.case-grid{grid-template-columns:1fr}}
+.case-section-title{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid var(--border)}
+.case-bullets{list-style:none;display:flex;flex-direction:column;gap:9px}
+.case-bullet{display:flex;gap:9px;align-items:flex-start;font-size:14px;color:var(--text2);line-height:1.6}
+.bullet-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:8px}
+.insight-box{background:var(--blue-soft);border:1.5px solid var(--blue-mid);border-radius:8px;padding:14px 16px;margin-top:18px}
+.insight-box.teal{background:rgba(14,165,122,.07);border-color:rgba(14,165,122,.3)}
+.insight-title{font-family:var(--mono);font-size:10px;color:var(--blue);text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.insight-title.teal{color:var(--teal)}
+.insight-text{font-size:13px;color:var(--text2);line-height:1.7}
+.insight-text strong{color:var(--text);font-weight:500}
+.compare-table{width:100%;border-collapse:collapse;font-size:13px}
+.compare-table th{padding:7px 10px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);border-bottom:1.5px solid var(--border);text-align:right;font-weight:400}
+.compare-table th:first-child{text-align:left}
+.compare-table td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;color:var(--text2)}
+.compare-table td:first-child{text-align:left;color:var(--text)}
+.compare-table tr.hl td{background:var(--blue-soft)}
+.compare-table tr.hl td:first-child{color:var(--blue);font-weight:500}
+
+/* TOOLTIP */
+.tooltip{position:fixed;background:var(--text);color:#fff;padding:6px 10px;border-radius:5px;font-family:var(--mono);font-size:11px;pointer-events:none;z-index:200;white-space:nowrap;opacity:0;transition:opacity .1s}
+
+footer{border-top:1.5px solid var(--border);padding:16px 40px;font-family:var(--mono);font-size:11px;color:var(--text3);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;background:var(--bg2)}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<nav class="topbar">
+  <div class="topbar-logo">
+    분류 지표 시뮬레이터
+    <span class="topbar-logo-badge">v2.0</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px">
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="switchPage('simulator')">📊 정밀도·재현율 시뮬레이터</button>
+      <button class="nav-tab" onclick="switchPage('cases')">📖 활용 사례</button>
+    </div>
+    <span class="live-badge" id="live-badge-sim"><span class="live-dot"></span>실시간</span>
+  </div>
+</nav>
+
+<!-- ══════════ PAGE 1: SIMULATOR ══════════ -->
+<div id="page-simulator" class="page active">
+
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="hero-chip">🎯 AI Classification Metrics</div>
+      <h1>정밀도 · 재현율<br><em>시뮬레이터</em></h1>
+      <p class="hero-desc">TP · FP · FN · TN 값을 입력하거나 슬라이더로 조절하고, <strong style="color:var(--text);font-weight:500;">임계값에 따라 Fβ-Score가 어떻게 변하는지</strong> 실시간으로 확인하세요.</p>
+      <div class="hero-stats">
+        <div class="hero-stat"><span class="hero-stat-val" id="hs-precision">—</span><span class="hero-stat-label">Precision</span></div>
+        <div class="hero-stat"><span class="hero-stat-val" id="hs-recall">—</span><span class="hero-stat-label">Recall</span></div>
+        <div class="hero-stat"><span class="hero-stat-val" id="hs-f1">—</span><span class="hero-stat-label">F1 Score</span></div>
+        <div class="hero-stat"><span class="hero-stat-val" id="hs-fbeta">—</span><span class="hero-stat-label" id="hs-fbeta-label">Fβ (β=?)</span></div>
+        <div class="hero-stat"><span class="hero-stat-val" id="hs-total">—</span><span class="hero-stat-label">총 샘플</span></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="section-label">입력 모드</div>
+        <div class="mode-tabs">
+          <button class="mode-tab active" id="tab-manual" onclick="setMode('manual')">직접 입력</button>
+          <button class="mode-tab" id="tab-slider" onclick="setMode('slider')">슬라이더</button>
+        </div>
+        <div id="panel-manual">
+          <div class="num-input-row">
+            <div class="num-group"><label class="num-label" style="color:var(--teal)">TP — 진양성</label><input type="number" class="num-input tp" id="in-tp" value="40" min="0" max="9999"></div>
+            <div class="num-group"><label class="num-label" style="color:var(--amber)">FP — 위양성</label><input type="number" class="num-input fp" id="in-fp" value="10" min="0" max="9999"></div>
+          </div>
+          <div class="num-input-row" style="margin-top:8px">
+            <div class="num-group"><label class="num-label" style="color:var(--red)">FN — 위음성</label><input type="number" class="num-input fn" id="in-fn" value="15" min="0" max="9999"></div>
+            <div class="num-group"><label class="num-label" style="color:var(--text3)">TN — 진음성</label><input type="number" class="num-input tn" id="in-tn" value="135" min="0" max="9999"></div>
+          </div>
+          <div class="derived-box" style="margin-top:10px">
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:4px">TOTAL SAMPLES</div>
+            <div style="font-family:var(--mono);font-size:14px;color:var(--blue);font-weight:500" id="matrix-total">200개 샘플</div>
+          </div>
+        </div>
+        <div id="panel-slider" style="display:none">
+          <div class="ctrl-row"><div class="ctrl-header"><span class="ctrl-name">정밀도 목표</span><span class="ctrl-val" id="sv-precision">0.75</span></div><input type="range" min="1" max="100" value="75" id="sl-precision"></div>
+          <div class="ctrl-row"><div class="ctrl-header"><span class="ctrl-name">재현율 목표</span><span class="ctrl-val" id="sv-recall">0.73</span></div><input type="range" min="1" max="100" value="73" id="sl-recall"></div>
+          <div class="ctrl-row"><div class="ctrl-header"><span class="ctrl-name">총 양성 샘플</span><span class="ctrl-val" id="sv-pos">55</span></div><input type="range" min="10" max="500" value="55" id="sl-pos"></div>
+          <div class="ctrl-row"><div class="ctrl-header"><span class="ctrl-name">총 음성 샘플</span><span class="ctrl-val" id="sv-neg">145</span></div><input type="range" min="10" max="500" value="145" id="sl-neg"></div>
+          <div class="derived-box"><div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:4px">자동 계산값</div><div style="font-family:var(--mono);font-size:11px;color:var(--blue)" id="slider-derived">—</div></div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-label">그래프 표시</div>
+        <div class="toggle-list">
+          <div class="toggle-row"><span class="toggle-label"><span class="color-swatch" style="background:var(--teal)"></span>정밀도</span><label class="toggle"><input type="checkbox" id="tog-p" checked><span class="toggle-track"></span></label></div>
+          <div class="toggle-row"><span class="toggle-label"><span class="color-swatch" style="background:var(--red)"></span>재현율</span><label class="toggle"><input type="checkbox" id="tog-r" checked><span class="toggle-track"></span></label></div>
+          <div class="toggle-row"><span class="toggle-label"><span class="color-swatch" style="background:var(--blue)"></span>F-β 곡선</span><label class="toggle"><input type="checkbox" id="tog-f1" checked><span class="toggle-track"></span></label></div>
+          <div class="toggle-row"><span class="toggle-label"><span class="color-swatch" style="background:var(--amber)"></span>F0.5</span><label class="toggle"><input type="checkbox" id="tog-f05" checked><span class="toggle-track"></span></label></div>
+          <div class="toggle-row"><span class="toggle-label"><span class="color-swatch" style="background:var(--purple)"></span>F2</span><label class="toggle"><input type="checkbox" id="tog-f2" checked><span class="toggle-track"></span></label></div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-label">수식 참고</div>
+        <div class="formula-grid">
+          <div class="formula-card"><div class="formula-name">정밀도</div><div class="formula-eq"><em>TP</em>/(<em>TP</em>+<em>FP</em>)</div></div>
+          <div class="formula-card"><div class="formula-name">재현율</div><div class="formula-eq"><em>TP</em>/(<em>TP</em>+<em>FN</em>)</div></div>
+          <div class="formula-card wide"><div class="formula-name">F-β Score</div><div class="formula-eq">(1+β²)·<em>P</em>·<em>R</em> / (β²·<em>P</em>+<em>R</em>)</div></div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <!-- Metric cards -->
+      <div class="metric-grid">
+        <div class="metric-card" style="--card-bar:var(--teal);--card-color:var(--teal)"><div class="metric-label">정밀도</div><div class="metric-val" id="mc-precision">—</div><div class="metric-sub">Precision</div></div>
+        <div class="metric-card" style="--card-bar:var(--red);--card-color:var(--red)"><div class="metric-label">재현율</div><div class="metric-val" id="mc-recall">—</div><div class="metric-sub">Recall</div></div>
+        <div class="metric-card" style="--card-bar:var(--blue);--card-color:var(--blue)"><div class="metric-label">F1 Score</div><div class="metric-val" id="mc-f1">—</div><div class="metric-sub">균형 점수</div></div>
+        <div class="metric-card" style="--card-bar:var(--amber);--card-color:var(--amber)"><div class="metric-label">F0.5</div><div class="metric-val" id="mc-f05">—</div><div class="metric-sub">정밀도 중시</div></div>
+        <div class="metric-card" style="--card-bar:var(--purple);--card-color:var(--purple)"><div class="metric-label">F2</div><div class="metric-val" id="mc-f2">—</div><div class="metric-sub">재현율 중시</div></div>
+      </div>
+
+      <!-- Confusion Matrix + β chart -->
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:16px;margin-bottom:16px;align-items:start">
+        <div class="panel" style="min-width:220px">
+          <div class="panel-header"><span class="panel-title">혼동 행렬</span><span class="panel-sub">Confusion Matrix</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+            <div style="background:rgba(14,165,122,.08);border:2px solid rgba(14,165,122,.3);border-radius:7px;padding:12px;text-align:center"><div style="font-family:var(--mono);font-size:10px;color:var(--teal);margin-bottom:3px;text-transform:uppercase">TP</div><div style="font-family:var(--mono);font-size:26px;font-weight:500;color:var(--teal)" id="cm-tp">40</div><div style="font-size:10px;color:var(--text3);margin-top:2px">진양성</div></div>
+            <div style="background:rgba(245,158,11,.07);border:2px solid rgba(245,158,11,.28);border-radius:7px;padding:12px;text-align:center"><div style="font-family:var(--mono);font-size:10px;color:var(--amber);margin-bottom:3px;text-transform:uppercase">FP</div><div style="font-family:var(--mono);font-size:26px;font-weight:500;color:var(--amber)" id="cm-fp">10</div><div style="font-size:10px;color:var(--text3);margin-top:2px">위양성</div></div>
+            <div style="background:rgba(230,57,80,.07);border:2px solid rgba(230,57,80,.28);border-radius:7px;padding:12px;text-align:center"><div style="font-family:var(--mono);font-size:10px;color:var(--red);margin-bottom:3px;text-transform:uppercase">FN</div><div style="font-family:var(--mono);font-size:26px;font-weight:500;color:var(--red)" id="cm-fn">15</div><div style="font-size:10px;color:var(--text3);margin-top:2px">위음성</div></div>
+            <div style="background:var(--bg3);border:2px solid var(--border);border-radius:7px;padding:12px;text-align:center"><div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:3px;text-transform:uppercase">TN</div><div style="font-family:var(--mono);font-size:26px;font-weight:500;color:var(--text2)" id="cm-tn">135</div><div style="font-size:10px;color:var(--text3);margin-top:2px">진음성</div></div>
+          </div>
+          <div style="margin-top:12px">
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.08em">비율</div>
+            <div style="height:7px;border-radius:4px;overflow:hidden;display:flex">
+              <div id="bar-tp" style="background:rgba(14,165,122,.7);height:100%;transition:width .3s"></div>
+              <div id="bar-fp" style="background:rgba(245,158,11,.7);height:100%;transition:width .3s"></div>
+              <div id="bar-fn" style="background:rgba(230,57,80,.7);height:100%;transition:width .3s"></div>
+              <div id="bar-tn" style="background:var(--border2);height:100%;transition:width .3s"></div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:5px;flex-wrap:wrap">
+              <span style="font-family:var(--mono);font-size:10px;color:var(--teal)">TP <span id="pct-tp">—</span></span>
+              <span style="font-family:var(--mono);font-size:10px;color:var(--amber)">FP <span id="pct-fp">—</span></span>
+              <span style="font-family:var(--mono);font-size:10px;color:var(--red)">FN <span id="pct-fn">—</span></span>
+              <span style="font-family:var(--mono);font-size:10px;color:var(--text3)">TN <span id="pct-tn">—</span></span>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">β에 따른 F-Score 변화</span><span class="panel-sub">β: 0 → 3</span></div>
+          <div class="chart-wrap"><canvas id="beta-chart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Bottom: field (full width) + table -->
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">샘플 시각화</span><span class="panel-sub" id="field-total-label">200개 샘플</span></div>
+        <div class="field-outer"><div class="field-grid" id="field-grid"></div></div>
+        <div class="legend">
+          <span class="legend-item"><span class="legend-swatch" style="background:rgba(14,165,122,.82)"></span>TP 진양성</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:rgba(245,158,11,.82)"></span>FP 위양성</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:rgba(230,57,80,.82)"></span>FN 위음성</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:var(--bg3);border:1px solid var(--border2)"></span>TN 진음성</span>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">β별 F-Score 수치표</span></div>
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th>β</th><th>정밀도</th><th>재현율</th><th>F-β</th><th>해석</th></tr></thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════
+           THRESHOLD SECTION — 맨 아래
+      ═══════════════════════════════════════ -->
+      <div class="thresh-panel">
+        <div class="thresh-header">
+          <div class="thresh-title-block">
+            <div class="thresh-title">임계값(Threshold)에 따른 Fβ-Score 변화</div>
+            <div class="thresh-desc">임계값을 올리면 정밀도↑ 재현율↓, 내리면 재현율↑ 정밀도↓ — β를 선택해 어떤 점수가 최고점인지 확인하세요</div>
+          </div>
+        </div>
+
+        <!-- β pill selectors -->
+        <div class="beta-pills">
+          <span style="font-family:var(--mono);font-size:10px;color:var(--text3);align-self:center;text-transform:uppercase;letter-spacing:.08em;margin-right:4px">β 선택:</span>
+          <button class="beta-pill" onclick="setBeta(0.25)">β=0.25</button>
+          <button class="beta-pill active" onclick="setBeta(0.5)">β=0.5</button>
+          <button class="beta-pill" onclick="setBeta(1.0)">β=1.0 (F1)</button>
+          <button class="beta-pill" onclick="setBeta(2.0)">β=2.0</button>
+          <button class="beta-pill" onclick="setBeta(3.0)">β=3.0</button>
+        </div>
+
+        <!-- Live readout at current threshold -->
+        <div class="thresh-readout">
+          <div class="readout-cell">
+            <div class="readout-val" style="color:var(--blue)" id="ro-threshold">0.50</div>
+            <div class="readout-lbl">임계값 t</div>
+          </div>
+          <div class="readout-cell">
+            <div class="readout-val" style="color:var(--teal)" id="ro-precision">—</div>
+            <div class="readout-lbl">정밀도</div>
+          </div>
+          <div class="readout-cell">
+            <div class="readout-val" style="color:var(--red)" id="ro-recall">—</div>
+            <div class="readout-lbl">재현율</div>
+          </div>
+          <div class="readout-cell">
+            <div class="readout-val" style="color:var(--blue)" id="ro-fbeta">—</div>
+            <div class="readout-lbl" id="ro-fbeta-lbl">Fβ (β=0.5)</div>
+          </div>
+          <div class="readout-cell">
+            <div class="readout-val" style="color:var(--amber)" id="ro-f1">—</div>
+            <div class="readout-lbl">F1</div>
+          </div>
+          <div class="readout-cell">
+            <div class="readout-val" style="color:var(--purple)" id="ro-optimal">—</div>
+            <div class="readout-lbl">최적 t (Fβ↑)</div>
+          </div>
+        </div>
+
+        <!-- Threshold chart -->
+        <div class="thresh-chart-area">
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:10px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:5px"><span style="width:24px;height:3px;background:var(--teal);border-radius:2px;display:inline-block"></span><span style="font-family:var(--mono);font-size:11px;color:var(--text2)">정밀도</span></div>
+            <div style="display:flex;align-items:center;gap:5px"><span style="width:24px;height:3px;background:var(--red);border-radius:2px;display:inline-block"></span><span style="font-family:var(--mono);font-size:11px;color:var(--text2)">재현율</span></div>
+            <div style="display:flex;align-items:center;gap:5px"><span style="width:24px;height:3px;background:var(--blue);border-radius:2px;display:inline-block"></span><span style="font-family:var(--mono);font-size:11px;color:var(--text2)" id="thresh-fbeta-label">Fβ (β=0.5)</span></div>
+            <div style="display:flex;align-items:center;gap:5px"><span style="width:24px;height:3px;background:var(--amber);border-radius:2px;display:inline-block"></span><span style="font-family:var(--mono);font-size:11px;color:var(--text2)">F1</span></div>
+            <div style="display:flex;align-items:center;gap:5px"><span style="width:18px;height:18px;background:var(--blue-soft);border:2px solid var(--blue);border-radius:50%;display:inline-block"></span><span style="font-family:var(--mono);font-size:11px;color:var(--text2)">현재 임계값</span></div>
+          </div>
+          <div class="thresh-chart-wrap">
+            <canvas id="thresh-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Big threshold slider — 맨 아래 -->
+        <div class="thresh-slider-wrap" style="border-top:1.5px solid var(--border);padding-top:18px">
+          <div class="thresh-big-row">
+            <span class="thresh-big-label">임계값 (t)</span>
+            <input type="range" min="1" max="99" value="50" step="1" id="sl-threshold" style="flex:1">
+            <span class="thresh-big-val" id="val-threshold">0.50</span>
+          </div>
+        </div>
+      </div>
+      <!-- ── END THRESHOLD SECTION ── -->
+
+    </main>
+  </div>
+</div>
+
+<!-- ══════════ PAGE 2: CASES ══════════ -->
+<div id="page-cases" class="page">
+  <div class="cases-page">
+    <div class="cases-hero">
+      <div class="cases-hero-chip">📖 Real-World Applications</div>
+      <h2>Fβ-Score <em>활용 사례</em></h2>
+      <p>실제 산업·연구에서 Fβ-Score가 어떻게 쓰이는지, 왜 β 값이 달라지는지 살펴보세요.</p>
+    </div>
+    <div class="case-card">
+      <div class="case-card-header">
+        <div class="case-icon spam">📧</div>
+        <div class="case-title-area">
+          <div class="case-category">NLP · Classification</div>
+          <div class="case-title">스팸 메일 필터</div>
+          <div class="case-subtitle">중요 메일을 스팸으로 잘못 분류하는 오류를 최소화</div>
+        </div>
+        <div class="case-beta-badge badge-blue">β &lt; 1 (F0.5 권장)</div>
+      </div>
+      <div class="case-body">
+        <div class="case-grid">
+          <div>
+            <div class="case-section-title">📌 핵심 문제</div>
+            <ul class="case-bullets">
+              <li class="case-bullet"><span class="bullet-dot" style="background:var(--blue)"></span>스팸 메일을 분류하는 AI 시스템에서, 실제 중요한 업무 메일이 스팸으로 잘못 분류될 경우 큰 피해가 발생합니다.</li>
+              <li class="case-bullet"><span class="bullet-dot" style="background:var(--blue)"></span>따라서 <strong>정밀도(Precision)</strong>를 더 중요하게 평가해야 합니다.</li>
+              <li class="case-bullet"><span class="bullet-dot" style="background:var(--blue)"></span>β &lt; 1 값(F0.5)을 사용하면 FP 비율을 낮추는 방향으로 모델을 평가합니다.</li>
+              <li class="case-bullet"><span class="bullet-dot" style="background:var(--blue)"></span>스팸 메일을 일부 놓치더라도(FN 허용), 정상 메일이 스팸함에 가지 않도록 합니다.</li>
+            </ul>
+            <div class="insight-box" style="margin-top:18px">
+              <div class="insight-title">💡 선택 근거</div>
+              <div class="insight-text">중요 메일 누락(FP)의 비용 &gt;&gt; 스팸 일부 통과(FN)의 비용<br>→ <strong>정밀도 우선 → F0.5 사용</strong></div>
+            </div>
+          </div>
+          <div>
+            <div class="case-section-title">📈 임계값별 정밀도·재현율 (예시)</div>
+            <table class="compare-table">
+              <thead><tr><th>임계값</th><th>정밀도</th><th>재현율</th><th>F0.5</th></tr></thead>
+              <tbody>
+                <tr><td>0.3</td><td style="color:var(--teal)">0.72</td><td style="color:var(--red)">0.91</td><td>0.75</td></tr>
+                <tr><td>0.5</td><td style="color:var(--teal)">0.85</td><td style="color:var(--red)">0.82</td><td>0.84</td></tr>
+                <tr class="hl"><td>0.7 ★</td><td style="color:var(--teal)">0.93</td><td style="color:var(--red)">0.61</td><td style="color:var(--blue);font-weight:600">0.85</td></tr>
+                <tr><td>0.9</td><td style="color:var(--teal)">0.97</td><td style="color:var(--red)">0.34</td><td>0.73</td></tr>
+              </tbody>
+            </table>
+            <div style="margin-top:8px;font-size:12px;color:var(--text3)">★ F0.5 최고점 — 정밀도를 중시하면 임계값을 높게 설정</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="case-card">
+      <div class="case-card-header">
+        <div class="case-icon drought">🌾</div>
+        <div class="case-title-area">
+          <div class="case-category">농업 생명과학 · AI 예측</div>
+          <div class="case-title">가뭄·비상급수 예측</div>
+          <div class="case-subtitle">실제 가뭄 상황을 단 하나도 놓치지 않는 것이 최우선</div>
+        </div>
+        <div class="case-beta-badge badge-teal">β &gt; 1 (F1/F2 권장)</div>
+      </div>
+      <div class="case-body">
+        <div class="case-grid">
+          <div>
+            <div class="case-section-title">📌 핵심 문제</div>
+            <ul class="case-bullets">
+              <li class="case-bullet"><span class="bullet-dot" style="background:var(--teal)"></span>비상급수 발생 여부를 예측하는 AI 모델에서, 실제 가뭄 상황을 놓치면 인명·농업 피해가 발생합니다.</li>
+              <li class="case-bullet"><span class="bullet-dot" style="background:var(--teal)"></span><strong>재현율(Recall)</strong>을 더 중요하게 평가해야 합니다.</li>
+              <li class="case-bullet"><span class="bullet-dot" style="background:var(--teal)"></span>F1/Fβ-Score를 통해 데이터 불균형 문제를 보완합니다.</li>
+              <li class="case-bullet"><span class="bullet-dot" style="background:var(--teal)"></span>단순 정확도보다 실제 위험 상황 예측 성능을 향상시킵니다.</li>
+            </ul>
+            <div class="insight-box teal" style="margin-top:18px">
+              <div class="insight-title teal">💡 논문 인용 근거</div>
+              <div class="insight-text"><em style="color:var(--text3)">"척도를 나타내는 <strong>F1-Score를 통해 모형의 성능을 평가하는 것이 바람직</strong>하다"</em></div>
+            </div>
+          </div>
+          <div>
+            <div class="case-section-title">📊 시스템 성능 비교 (논문 참고)</div>
+            <table class="compare-table">
+              <thead><tr><th>시스템</th><th>정밀도</th><th>재현율</th><th>F-measure</th></tr></thead>
+              <tbody>
+                <tr><td>N.T</td><td style="color:var(--teal)">100%</td><td style="color:var(--red)">88.88%</td><td>94.11%</td></tr>
+                <tr class="hl"><td>H.T ★</td><td style="color:var(--teal)">84.62%</td><td style="color:var(--red)">100%</td><td style="color:var(--blue);font-weight:600">94.44%</td></tr>
+                <tr><td>H.1</td><td style="color:var(--teal)">52.38%</td><td style="color:var(--red)">76.19%</td><td>52.38%</td></tr>
+                <tr><td>H.S</td><td style="color:var(--teal)">61.9%</td><td style="color:var(--red)">59.17%</td><td>62.20%</td></tr>
+              </tbody>
+            </table>
+            <div style="margin-top:8px;font-size:12px;color:var(--text3)">★ F-measure 최고점 — 재현율 100%로 가뭄을 하나도 놓치지 않음</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="background:var(--blue);border-radius:12px;padding:32px 36px;margin-top:8px;color:#fff;position:relative;overflow:hidden">
+      <div style="position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:rgba(255,255,255,.06);border-radius:50%"></div>
+      <div style="font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px">📐 Summary</div>
+      <div style="font-family:var(--display);font-size:26px;font-weight:800;letter-spacing:-.02em;margin-bottom:14px">β 선택 가이드</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;position:relative;z-index:1">
+        <div style="background:rgba(255,255,255,.12);border-radius:8px;padding:16px"><div style="font-family:var(--mono);font-size:18px;font-weight:500;margin-bottom:5px">β &lt; 1</div><div style="font-size:13px;opacity:.85;line-height:1.6">정밀도 중시<br>FP 비용이 클 때<br><strong>예: 스팸 필터</strong></div></div>
+        <div style="background:rgba(255,255,255,.12);border-radius:8px;padding:16px"><div style="font-family:var(--mono);font-size:18px;font-weight:500;margin-bottom:5px">β = 1</div><div style="font-size:13px;opacity:.85;line-height:1.6">균형 점수<br>FP·FN 동등<br><strong>예: 일반 분류</strong></div></div>
+        <div style="background:rgba(255,255,255,.12);border-radius:8px;padding:16px"><div style="font-family:var(--mono);font-size:18px;font-weight:500;margin-bottom:5px">β &gt; 1</div><div style="font-size:13px;opacity:.85;line-height:1.6">재현율 중시<br>FN 비용이 클 때<br><strong>예: 가뭄 예측</strong></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<footer>
+  <span>분류 지표 시뮬레이터 v2.0 — Precision · Recall · Fβ-Score</span>
+  <span>임계값 분석 · β 가중치 시각화 · TP / FP / FN / TN</span>
+</footer>
+
+<script>
+// ── PAGE SWITCH ──────────────────────────────────────────
+function switchPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelector(`.nav-tab[onclick="switchPage('${name}')"]`).classList.add('active');
+  document.getElementById('live-badge-sim').style.display = name==='simulator' ? 'flex' : 'none';
+}
+
+// ── MATH ─────────────────────────────────────────────────
+function fbeta(p, r, b) {
+  if (p + r === 0) return 0;
+  return (1 + b*b) * p * r / ((b*b*p) + r);
+}
+function calcMetrics(tp, fp, fn) {
+  const precision = (tp+fp)>0 ? tp/(tp+fp) : 0;
+  const recall    = (tp+fn)>0 ? tp/(tp+fn) : 0;
+  return {
+    precision, recall,
+    f1:  fbeta(precision, recall, 1.0),
+    f05: fbeta(precision, recall, 0.5),
+    f2:  fbeta(precision, recall, 2.0),
+  };
+}
+
+// ── STATE ─────────────────────────────────────────────────
+let mode = 'manual';
+let state = { tp:40, fp:10, fn:15, tn:135 };
+let currentBeta = 0.5;
+let betaChartInst = null;
+let threshChartInst = null;
+
+// ── THRESHOLD SIMULATION ──────────────────────────────────
+// 원리: 각 샘플에 점수(score)를 부여한다고 가정
+//   - 실제 양성(TP+FN개): score ~ 높은 분포  (평균 μ_pos)
+//   - 실제 음성(FP+TN개): score ~ 낮은 분포  (평균 μ_neg)
+// 임계값 t를 올리면 → 예측 양성이 줄어 → TP↓ FP↓↓ → 정밀도↑ 재현율↓
+// μ_pos, μ_neg는 base TP/FP/FN/TN에서 역산해 보정한다.
+
+function buildThresholdCurve() {
+  const { tp: bTp, fp: bFp, fn: bFn, tn: bTn } = state;
+  const totalPos = bTp + bFn;  // 실제 양성 수
+  const totalNeg = bFp + bTn;  // 실제 음성 수
+
+  if (totalPos === 0 && totalNeg === 0) {
+    const ts = [];
+    for (let i = 1; i <= 99; i++) ts.push(i / 100);
+    const z = ts.map(() => 0);
+    return { ts, precisions: z, recalls: z, fbs: z, f1s: z };
+  }
+
+  // base metrics at the "default" operating point
+  const baseRecall = totalPos > 0 ? bTp / totalPos : 0.7;
+  const baseFPR    = totalNeg > 0 ? bFp / totalNeg : 0.2;
+
+  // 정규분포 CDF 근사 (Abramowitz & Stegun)
+  function normCDF(x) {
+    const t2 = 1 / (1 + 0.2316419 * Math.abs(x));
+    const poly = t2 * (0.319381530 + t2 * (-0.356563782 + t2 * (1.781477937 + t2 * (-1.821255978 + t2 * 1.330274429))));
+    const p = 1 - (1 / Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * x * x) * poly;
+    return x >= 0 ? p : 1 - p;
+  }
+
+  // 표준 정규 역함수 근사 (Beasley-Springer-Moro)
+  function normInv(p) {
+    p = Math.max(1e-9, Math.min(1 - 1e-9, p));
+    const a = [0, -3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02, 1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
+    const b = [0, -5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02, 6.680131188771972e+01, -1.328068155288572e+01];
+    const c = [0, -7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00, -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00];
+    const d = [0, 7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00, 3.754408661907416e+00];
+    const pLow = 0.02425, pHigh = 1 - pLow;
+    let x;
+    if (p < pLow) {
+      const q = Math.sqrt(-2 * Math.log(p));
+      x = (((((c[1]*q+c[2])*q+c[3])*q+c[4])*q+c[5])*q+c[6]) /
+          ((((d[1]*q+d[2])*q+d[3])*q+d[4])*q+1);
+    } else if (p <= pHigh) {
+      const q = p - 0.5, r = q*q;
+      x = (((((a[1]*r+a[2])*r+a[3])*r+a[4])*r+a[5])*r+a[6])*q /
+          (((((b[1]*r+b[2])*r+b[3])*r+b[4])*r+b[5])*r+1);
+    } else {
+      const q = Math.sqrt(-2 * Math.log(1 - p));
+      x = -(((((c[1]*q+c[2])*q+c[3])*q+c[4])*q+c[5])*q+c[6]) /
+           ((((d[1]*q+d[2])*q+d[3])*q+d[4])*q+1);
+    }
+    return x;
+  }
+
+  // base operating point에서 μ_pos, μ_neg를 역산
+  // P(score > t_base | pos) = baseRecall  →  t_base = μ_pos + σ * normInv(1-baseRecall)
+  // P(score > t_base | neg) = baseFPR     →  t_base = μ_neg + σ * normInv(1-baseFPR)
+  const sigma = 0.18;  // 분포의 표준편차 (일정하게 고정)
+  const t_base = 0.5;
+  const mu_pos = t_base - sigma * normInv(1 - Math.max(0.01, Math.min(0.99, baseRecall)));
+  const mu_neg = t_base - sigma * normInv(1 - Math.max(0.01, Math.min(0.99, baseFPR)));
+
+  // 각 임계값 t에서 recall(t), FPR(t) 계산
+  // recall(t) = P(score_pos > t) = 1 - normCDF((t - mu_pos)/sigma)
+  // FPR(t)    = P(score_neg > t) = 1 - normCDF((t - mu_neg)/sigma)
+  // 정밀도 = TP / (TP + FP) = recall*totalPos / (recall*totalPos + FPR*totalNeg)
+
+  const ts = [];
+  for (let i = 1; i <= 99; i++) ts.push(i / 100);
+
+  const precisions = [], recalls = [], fbs = [], f1s = [];
+  ts.forEach(t => {
+    const recallT = 1 - normCDF((t - mu_pos) / sigma);
+    const fprT    = 1 - normCDF((t - mu_neg) / sigma);
+
+    const tp_t = recallT  * totalPos;
+    const fp_t = fprT     * totalNeg;
+
+    const prec = (tp_t + fp_t) > 0 ? tp_t / (tp_t + fp_t) : 1;
+    const rec  = totalPos > 0        ? tp_t / totalPos       : 0;
+
+    precisions.push(+Math.min(1, Math.max(0, prec)).toFixed(4));
+    recalls   .push(+Math.min(1, Math.max(0, rec)) .toFixed(4));
+    fbs.push(+fbeta(prec, rec, currentBeta).toFixed(4));
+    f1s.push(+fbeta(prec, rec, 1.0)        .toFixed(4));
+  });
+
+  return { ts, precisions, recalls, fbs, f1s };
+}
+
+// simulateAtThreshold: 단일 t에서 현재 수치 계산 (readout용)
+function simulateAtThreshold(t) {
+  const { ts, precisions, recalls } = buildThresholdCurve();
+  // 가장 가까운 인덱스 찾기
+  let best = 0, bestDiff = 1;
+  ts.forEach((v, i) => { const d = Math.abs(v - t); if (d < bestDiff) { bestDiff = d; best = i; } });
+  const prec = precisions[best];
+  const rec  = recalls[best];
+  return { prec, rec };
+}
+
+// ── BETA SELECTOR ─────────────────────────────────────────
+function setBeta(b) {
+  currentBeta = b;
+  document.querySelectorAll('.beta-pill').forEach(el => el.classList.remove('active'));
+  const labels = {'0.25':'β=0.25','0.5':'β=0.5','1':'β=1.0 (F1)','2':'β=2.0','3':'β=3.0'};
+  document.querySelectorAll('.beta-pill').forEach(el => {
+    if (el.textContent.trim() === (labels[String(b)] || `β=${b}`)) el.classList.add('active');
+  });
+  document.getElementById('thresh-fbeta-label').textContent = `Fβ (β=${b})`;
+  document.getElementById('ro-fbeta-lbl').textContent = `Fβ (β=${b})`;
+  document.getElementById('hs-fbeta-label').textContent = `Fβ (β=${b})`;
+  renderThresholdChart();
+  updateReadout();
+}
+
+// ── MODE ─────────────────────────────────────────────────
+function setMode(m) {
+  mode = m;
+  document.getElementById('tab-manual').classList.toggle('active', m==='manual');
+  document.getElementById('tab-slider').classList.toggle('active', m==='slider');
+  document.getElementById('panel-manual').style.display = m==='manual' ? '' : 'none';
+  document.getElementById('panel-slider').style.display = m==='slider' ? '' : 'none';
+  update();
+}
+
+function readState() {
+  if (mode === 'manual') {
+    state.tp = Math.max(0, parseInt(document.getElementById('in-tp').value)||0);
+    state.fp = Math.max(0, parseInt(document.getElementById('in-fp').value)||0);
+    state.fn = Math.max(0, parseInt(document.getElementById('in-fn').value)||0);
+    state.tn = Math.max(0, parseInt(document.getElementById('in-tn').value)||0);
+  } else {
+    const P   = parseInt(document.getElementById('sl-precision').value)/100;
+    const R   = parseInt(document.getElementById('sl-recall').value)/100;
+    const pos = parseInt(document.getElementById('sl-pos').value);
+    const neg = parseInt(document.getElementById('sl-neg').value);
+    const tp = Math.round(R * pos);
+    const fn = pos - tp;
+    const fp = (P<1 && tp>0) ? Math.round(tp*(1-P)/P) : 0;
+    const tn = Math.max(0, neg - fp);
+    state = { tp, fp:Math.max(0,fp), fn:Math.max(0,fn), tn:Math.max(0,tn) };
+    document.getElementById('sv-precision').textContent = P.toFixed(2);
+    document.getElementById('sv-recall').textContent    = R.toFixed(2);
+    document.getElementById('sv-pos').textContent = pos;
+    document.getElementById('sv-neg').textContent = neg;
+    document.getElementById('slider-derived').textContent = `TP=${state.tp}, FP=${state.fp}, FN=${state.fn}, TN=${state.tn}`;
+  }
+}
+
+// ── MAIN UPDATE ──────────────────────────────────────────
+function update() {
+  readState();
+  const {tp, fp, fn, tn} = state;
+  const total = tp+fp+fn+tn;
+  const {precision, recall, f1, f05, f2} = calcMetrics(tp, fp, fn);
+  const fb = fbeta(precision, recall, currentBeta);
+
+  // Hero
+  document.getElementById('hs-precision').textContent = precision.toFixed(3);
+  document.getElementById('hs-recall').textContent    = recall.toFixed(3);
+  document.getElementById('hs-f1').textContent        = f1.toFixed(3);
+  document.getElementById('hs-fbeta').textContent     = fb.toFixed(3);
+  document.getElementById('hs-total').textContent     = total;
+
+  // Cards
+  document.getElementById('mc-precision').textContent = precision.toFixed(3);
+  document.getElementById('mc-recall').textContent    = recall.toFixed(3);
+  document.getElementById('mc-f1').textContent        = f1.toFixed(3);
+  document.getElementById('mc-f05').textContent       = f05.toFixed(3);
+  document.getElementById('mc-f2').textContent        = f2.toFixed(3);
+
+  // Matrix
+  ['tp','fp','fn','tn'].forEach(k => document.getElementById('cm-'+k).textContent = state[k]);
+  document.getElementById('matrix-total').textContent = `${total}개 샘플`;
+  document.getElementById('field-total-label').textContent = `${total}개 샘플`;
+
+  if (total > 0) {
+    const pct = v => (v/total*100).toFixed(1)+'%';
+    ['tp','fp','fn','tn'].forEach(k => {
+      document.getElementById('bar-'+k).style.width = pct(state[k]);
+      document.getElementById('pct-'+k).textContent = pct(state[k]);
+    });
+  }
+
+  renderBetaChart(precision, recall);
+  renderThresholdChart();
+  renderField(tp, fp, fn, tn);
+  renderTable(precision, recall);
+  updateReadout();
+}
+
+// ── READOUT (threshold live numbers) ─────────────────────
+function updateReadout() {
+  const t = parseInt(document.getElementById('sl-threshold').value)/100;
+  const { prec, rec } = simulateAtThreshold(t);
+  const fb  = fbeta(prec, rec, currentBeta);
+  const f1v = fbeta(prec, rec, 1.0);
+
+  document.getElementById('ro-threshold').textContent  = t.toFixed(2);
+  document.getElementById('ro-precision').textContent  = prec.toFixed(3);
+  document.getElementById('ro-recall').textContent     = rec.toFixed(3);
+  document.getElementById('ro-fbeta').textContent      = fb.toFixed(3);
+  document.getElementById('ro-f1').textContent         = f1v.toFixed(3);
+  document.getElementById('val-threshold').textContent = t.toFixed(2);
+
+  // Find optimal t (max fbeta)
+  const curve = buildThresholdCurve();
+  let maxFb = -1, optT = 0.5;
+  curve.fbs.forEach((v, i) => { if (v > maxFb) { maxFb = v; optT = curve.ts[i]; } });
+  document.getElementById('ro-optimal').textContent = optT.toFixed(2);
+}
+
+// ── BETA CHART ───────────────────────────────────────────
+function renderBetaChart(p, r) {
+  const showP   = document.getElementById('tog-p').checked;
+  const showR   = document.getElementById('tog-r').checked;
+  const showF1  = document.getElementById('tog-f1').checked;
+  const showF05 = document.getElementById('tog-f05').checked;
+  const showF2  = document.getElementById('tog-f2').checked;
+  const betas = [];
+  for (let b=0; b<=3; b+=0.1) betas.push(+b.toFixed(2));
+  const datasets = [];
+  if (showP)   datasets.push({label:'정밀도', data:betas.map(()=>+p.toFixed(4)), borderColor:'#0ea57a', borderWidth:2, borderDash:[5,4], pointRadius:0, fill:false, tension:0});
+  if (showR)   datasets.push({label:'재현율', data:betas.map(()=>+r.toFixed(4)), borderColor:'#e63950', borderWidth:2, borderDash:[5,4], pointRadius:0, fill:false, tension:0});
+  if (showF1)  datasets.push({label:'F-β',   data:betas.map(b=>+fbeta(p,r,b).toFixed(4)), borderColor:'#1a56ff', borderWidth:2.5, pointRadius:0, fill:false, tension:0.35});
+  if (showF05) datasets.push({label:'F0.5',  data:betas.map(b=>b<=0.5?+fbeta(p,r,b).toFixed(4):null), borderColor:'#f59e0b', borderWidth:1.5, borderDash:[3,3], pointRadius:0, fill:false, tension:0.3});
+  if (showF2)  datasets.push({label:'F2',    data:betas.map(b=>b>=1.5?+fbeta(p,r,b).toFixed(4):null), borderColor:'#7c3aed', borderWidth:1.5, borderDash:[3,3], pointRadius:0, fill:false, tension:0.3});
+  const gc='rgba(0,0,0,0.05)', tc='#9aa0b8';
+  if (betaChartInst) {
+    betaChartInst.data.labels = betas.map(b=>b.toFixed(1));
+    betaChartInst.data.datasets = datasets;
+    betaChartInst.update('none');
+    return;
+  }
+  betaChartInst = new Chart(document.getElementById('beta-chart'), {
+    type:'line', data:{labels:betas.map(b=>b.toFixed(1)), datasets},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:80},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#fff',borderColor:'#e2e6f0',borderWidth:1,titleColor:'#0d1120',bodyColor:'#4a5270',titleFont:{family:"'DM Mono',monospace",size:11},bodyFont:{family:"'DM Mono',monospace",size:11},callbacks:{title:i=>`β = ${i[0].label}`,label:i=>`  ${i.dataset.label}: ${i.raw?.toFixed(3)??'—'}`}}},
+      scales:{x:{grid:{color:gc},ticks:{color:tc,font:{family:"'DM Mono',monospace",size:10},maxTicksLimit:10},title:{display:true,text:'β (가중치)',color:tc,font:{family:"'DM Mono',monospace",size:10}}},y:{min:0,max:1,grid:{color:gc},ticks:{color:tc,font:{family:"'DM Mono',monospace",size:10},callback:v=>v.toFixed(1)}}}}
+  });
+}
+
+// ── THRESHOLD CHART ──────────────────────────────────────
+function renderThresholdChart() {
+  const {ts, precisions, recalls, fbs, f1s} = buildThresholdCurve();
+  const labels = ts.map(t => t.toFixed(2));
+  const currentT = parseInt(document.getElementById('sl-threshold').value)/100;
+
+  // Find optimal t index
+  let maxFb = -1, optIdx = 0;
+  fbs.forEach((v,i)=>{ if(v>maxFb){ maxFb=v; optIdx=i; } });
+  const optT = ts[optIdx];
+
+  const gc='rgba(0,0,0,0.04)', tc='#9aa0b8';
+
+  // Find closest index to currentT
+  let closestIdx = 0, closestDiff = 1;
+  ts.forEach((v,i) => { const d = Math.abs(v - currentT); if (d < closestDiff) { closestDiff = d; closestIdx = i; } });
+
+  const datasets = [
+    {label:'정밀도', data:precisions, borderColor:'#0ea57a', borderWidth:2, pointRadius:0, fill:false, tension:0.3},
+    {label:'재현율', data:recalls,    borderColor:'#e63950', borderWidth:2, pointRadius:0, fill:false, tension:0.3},
+    {label:`Fβ (β=${currentBeta})`, data:fbs, borderColor:'#1a56ff', borderWidth:2.5, pointRadius:0, fill:false, tension:0.3},
+    {label:'F1', data:f1s, borderColor:'#f59e0b', borderWidth:1.5, borderDash:[4,3], pointRadius:0, fill:false, tension:0.3},
+    // Current threshold marker on Fβ curve
+    {
+      label:'현재 t',
+      data: ts.map((v,i) => i === closestIdx ? fbs[i] : null),
+      borderColor:'#1a56ff', backgroundColor:'#fff',
+      borderWidth:3, pointRadius:9, pointHoverRadius:11,
+      pointStyle:'circle', showLine:false, fill:false,
+    },
+    // Optimal t marker
+    {
+      label:'최적 t',
+      data: ts.map((v,i) => i === optIdx ? fbs[i] : null),
+      borderColor:'#1a56ff', backgroundColor:'#1a56ff',
+      borderWidth:2, pointRadius:6, pointHoverRadius:8,
+      showLine:false, fill:false,
+    },
+  ];
+
+  if (threshChartInst) {
+    threshChartInst.data.labels = labels;
+    threshChartInst.data.datasets = datasets;
+    threshChartInst.update('none');
+    return;
+  }
+
+  threshChartInst = new Chart(document.getElementById('thresh-chart'), {
+    type:'line',
+    data:{ labels, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      animation:{duration:60},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#fff', borderColor:'#e2e6f0', borderWidth:1,
+          titleColor:'#0d1120', bodyColor:'#4a5270',
+          titleFont:{family:"'DM Mono',monospace",size:11},
+          bodyFont:{family:"'DM Mono',monospace",size:11},
+          filter: item => item.dataset.label !== '현재 t' && item.dataset.label !== '최적 t',
+          callbacks:{
+            title: items=>`임계값 t = ${items[0].label}`,
+            label: item=>`  ${item.dataset.label}: ${(item.raw ?? 0).toFixed(3)}`
+          }
+        }
+      },
+      scales:{
+        x:{
+          grid:{color:gc},
+          ticks:{color:tc, font:{family:"'DM Mono',monospace",size:10}, maxTicksLimit:12},
+          title:{display:true, text:'임계값 (Threshold t)', color:tc, font:{family:"'DM Mono',monospace",size:10}}
+        },
+        y:{
+          min:0, max:1,
+          grid:{color:gc},
+          ticks:{color:tc, font:{family:"'DM Mono',monospace",size:10}, callback:v=>v.toFixed(1)}
+        }
+      }
+    }
+  });
+}
+
+// ── FIELD ─────────────────────────────────────────────────
+function renderField(tp, fp, fn, tn) {
+  const total = tp + fp + fn + tn;
+  const MAX_CELLS = 900;
+  const scale = total > MAX_CELLS ? MAX_CELLS / total : 1;
+  const sTP = Math.round(tp * scale), sFP = Math.round(fp * scale);
+  const sFN = Math.round(fn * scale), sTN = Math.round(tn * scale);
+  const sTotal = sTP + sFP + sFN + sTN;
+
+  const types = [];
+  for (let i = 0; i < sTP; i++) types.push('tp');
+  for (let i = 0; i < sFP; i++) types.push('fp');
+  for (let i = 0; i < sFN; i++) types.push('fn');
+  for (let i = 0; i < sTN; i++) types.push('tn');
+  for (let i = types.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [types[i], types[j]] = [types[j], types[i]];
+  }
+
+  const grid = document.getElementById('field-grid');
+  const panelWidth = grid.parentElement.parentElement.clientWidth - 40 || 660;
+  // 셀 크기는 패널 너비에서 cols수로 나눠서 결정 (최소 16, 최대 28)
+  // 먼저 목표 cols를 정하고 cellSize 계산
+  const targetCols = Math.ceil(Math.sqrt(sTotal * (panelWidth / 300)));
+  const cols = Math.max(10, Math.min(targetCols, 50));
+  const gap = 4;
+  const cellSize = Math.max(16, Math.min(28, Math.floor((panelWidth - (cols - 1) * gap) / cols)));
+
+  grid.style.gridTemplateColumns = `repeat(${cols}, ${cellSize}px)`;
+  grid.style.gap = gap + 'px';
+  grid.innerHTML = '';
+
+  const lbls = { tp: 'TP: 진양성', fp: 'FP: 위양성', fn: 'FN: 위음성', tn: 'TN: 진음성' };
+  types.forEach(t => {
+    const cell = document.createElement('div');
+    cell.className = `field-cell cell-${t}`;
+    cell.style.width = cell.style.height = cellSize + 'px';
+    cell.title = lbls[t];
+    grid.appendChild(cell);
+  });
+}
+
+// ── TABLE ─────────────────────────────────────────────────
+const betaRows = [
+  {b:0.1,label:'FP 최소화'},{b:0.25,label:'FP 억제'},{b:0.5,label:'F0.5 정밀도↑'},
+  {b:1.0,label:'F1 균형'},{b:2.0,label:'F2 재현율↑'},{b:3.0,label:'재현율 최대화'},
+];
+function renderTable(p, r) {
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = '';
+  betaRows.forEach(({b, label}) => {
+    const f = fbeta(p, r, b);
+    const isActive = Math.abs(b - currentBeta) < 0.01;
+    const tr = document.createElement('tr');
+    if (isActive) tr.classList.add('active');
+    tr.innerHTML = `
+      <td>${b.toFixed(2)}</td>
+      <td style="color:var(--teal)">${p.toFixed(3)}</td>
+      <td style="color:var(--red)">${r.toFixed(3)}</td>
+      <td style="color:var(--blue);font-weight:${isActive?'600':'400'}">${f.toFixed(3)}</td>
+      <td style="color:var(--text3);font-size:11px">${label}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── EVENTS ────────────────────────────────────────────────
+['in-tp','in-fp','in-fn','in-tn'].forEach(id => document.getElementById(id).addEventListener('input', update));
+['sl-precision','sl-recall','sl-pos','sl-neg'].forEach(id => document.getElementById(id).addEventListener('input', update));
+['tog-p','tog-r','tog-f1','tog-f05','tog-f2'].forEach(id => {
+  document.getElementById(id).addEventListener('change', () => {
+    const {precision, recall} = calcMetrics(state.tp, state.fp, state.fn);
+    renderBetaChart(precision, recall);
+  });
+});
+document.getElementById('sl-threshold').addEventListener('input', () => {
+  renderThresholdChart();
+  updateReadout();
+});
+
+// Tooltip
+const tooltip = document.getElementById('tooltip');
+document.getElementById('field-grid').addEventListener('mousemove', e => {
+  if (e.target.classList.contains('field-cell')) {
+    tooltip.style.opacity='1';
+    tooltip.style.left=(e.clientX+12)+'px';
+    tooltip.style.top=(e.clientY-30)+'px';
+    tooltip.textContent=e.target.title;
+  }
+});
+document.getElementById('field-grid').addEventListener('mouseleave', () => tooltip.style.opacity='0');
+
+update();
+</script>
+</body>
+</html>
